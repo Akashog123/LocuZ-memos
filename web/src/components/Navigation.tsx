@@ -1,4 +1,4 @@
-import { EarthIcon, LibraryIcon, PaperclipIcon, UserCircleIcon } from "lucide-react";
+import { EarthIcon, LibraryIcon, PaperclipIcon, UserCircleIcon, ClockIcon } from "lucide-react";
 import { observer } from "mobx-react-lite";
 import { useEffect } from "react";
 import { NavLink } from "react-router-dom";
@@ -54,6 +54,12 @@ const Navigation = observer((props: Props) => {
     title: t("common.attachments"),
     icon: <PaperclipIcon className="w-6 h-auto shrink-0" />,
   };
+  const pomodoroNavLink: NavLinkItem = {
+    id: "header-pomodoro",
+    path: Routes.POMODORO,
+    title: "Pomodoro",
+    icon: <ClockIcon className="w-6 h-auto shrink-0" />,
+  };
   const signInNavLink: NavLinkItem = {
     id: "header-auth",
     path: Routes.AUTH,
@@ -61,7 +67,9 @@ const Navigation = observer((props: Props) => {
     icon: <UserCircleIcon className="w-6 h-auto shrink-0" />,
   };
 
-  const navLinks: NavLinkItem[] = currentUser ? [homeNavLink, exploreNavLink, attachmentsNavLink] : [exploreNavLink, signInNavLink];
+  const navLinks: NavLinkItem[] = currentUser
+    ? [homeNavLink, exploreNavLink, attachmentsNavLink, pomodoroNavLink]
+    : [exploreNavLink, signInNavLink];
 
   return (
     <header className={cn("w-full h-full overflow-auto flex flex-col justify-between items-start gap-4 hide-scrollbar", className)}>

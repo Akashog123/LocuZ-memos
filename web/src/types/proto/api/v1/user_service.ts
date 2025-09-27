@@ -257,6 +257,7 @@ export interface UserSetting {
   sessionsSetting?: UserSetting_SessionsSetting | undefined;
   accessTokensSetting?: UserSetting_AccessTokensSetting | undefined;
   webhooksSetting?: UserSetting_WebhooksSetting | undefined;
+  pomodoroSetting?: UserSetting_PomodoroSetting | undefined;
 }
 
 /** Enumeration of user setting keys. */
@@ -270,6 +271,8 @@ export enum UserSetting_Key {
   ACCESS_TOKENS = "ACCESS_TOKENS",
   /** WEBHOOKS - WEBHOOKS is the key for user webhooks. */
   WEBHOOKS = "WEBHOOKS",
+  /** POMODORO - POMODORO is the key for pomodoro timer settings. */
+  POMODORO = "POMODORO",
   UNRECOGNIZED = "UNRECOGNIZED",
 }
 
@@ -290,6 +293,9 @@ export function userSetting_KeyFromJSON(object: any): UserSetting_Key {
     case 4:
     case "WEBHOOKS":
       return UserSetting_Key.WEBHOOKS;
+    case 5:
+    case "POMODORO":
+      return UserSetting_Key.POMODORO;
     case -1:
     case "UNRECOGNIZED":
     default:
@@ -309,6 +315,8 @@ export function userSetting_KeyToNumber(object: UserSetting_Key): number {
       return 3;
     case UserSetting_Key.WEBHOOKS:
       return 4;
+    case UserSetting_Key.POMODORO:
+      return 5;
     case UserSetting_Key.UNRECOGNIZED:
     default:
       return -1;
@@ -345,6 +353,84 @@ export interface UserSetting_AccessTokensSetting {
 export interface UserSetting_WebhooksSetting {
   /** List of user webhooks. */
   webhooks: UserWebhook[];
+}
+
+/** User pomodoro timer configuration. */
+export interface UserSetting_PomodoroSetting {
+  /** Selected preset ID */
+  selectedPreset: string;
+  /** Array of timer presets */
+  presets: UserSetting_TimerPreset[];
+  /** Appearance settings for each mode */
+  appearanceSettings?: UserSetting_AppearanceSettings | undefined;
+}
+
+/** Appearance settings for different timer modes */
+export interface UserSetting_AppearanceSettings {
+  /** Home mode appearance settings */
+  home?:
+    | UserSetting_ModeAppearance
+    | undefined;
+  /** Focus mode appearance settings */
+  focus?:
+    | UserSetting_ModeAppearance
+    | undefined;
+  /** Ambient mode appearance settings */
+  ambient?: UserSetting_ModeAppearance | undefined;
+}
+
+/** Appearance settings for a specific mode */
+export interface UserSetting_ModeAppearance {
+  /** Wallpaper settings */
+  wallpaper?:
+    | UserSetting_WallpaperSetting
+    | undefined;
+  /** Font settings */
+  font?: UserSetting_FontSetting | undefined;
+}
+
+/** Wallpaper configuration */
+export interface UserSetting_WallpaperSetting {
+  /** Selected wallpaper ID */
+  selectedWallpaper: string;
+  /** Wallpaper display style */
+  wallpaperStyle: string;
+}
+
+/** Font configuration */
+export interface UserSetting_FontSetting {
+  /** Selected font family */
+  selectedFont: string;
+  /** Font size in pixels */
+  fontSize: number;
+  /** Font color (hex code) */
+  fontColor: string;
+}
+
+/** Timer preset configuration. */
+export interface UserSetting_TimerPreset {
+  /** Unique identifier for the preset */
+  id: string;
+  /** Display name */
+  name: string;
+  /** Description of the preset */
+  description: string;
+  /** Preset type */
+  type: string;
+  /** Focus duration in minutes (0 for stopwatch) */
+  focusDuration: number;
+  /** Short break duration in minutes */
+  shortBreakDuration: number;
+  /** Long break duration in minutes */
+  longBreakDuration: number;
+  /** After how many focus sessions to take a long break */
+  longBreakInterval: number;
+  /** Whether to auto-start breaks */
+  autoStartBreaks: boolean;
+  /** Whether to auto-start focus sessions */
+  autoStartFocus: boolean;
+  /** Whether this is a default preset (cannot be deleted) */
+  isDefault: boolean;
 }
 
 export interface GetUserSettingRequest {
@@ -1616,6 +1702,7 @@ function createBaseUserSetting(): UserSetting {
     sessionsSetting: undefined,
     accessTokensSetting: undefined,
     webhooksSetting: undefined,
+    pomodoroSetting: undefined,
   };
 }
 
@@ -1635,6 +1722,9 @@ export const UserSetting: MessageFns<UserSetting> = {
     }
     if (message.webhooksSetting !== undefined) {
       UserSetting_WebhooksSetting.encode(message.webhooksSetting, writer.uint32(42).fork()).join();
+    }
+    if (message.pomodoroSetting !== undefined) {
+      UserSetting_PomodoroSetting.encode(message.pomodoroSetting, writer.uint32(50).fork()).join();
     }
     return writer;
   },
@@ -1686,6 +1776,14 @@ export const UserSetting: MessageFns<UserSetting> = {
           message.webhooksSetting = UserSetting_WebhooksSetting.decode(reader, reader.uint32());
           continue;
         }
+        case 6: {
+          if (tag !== 50) {
+            break;
+          }
+
+          message.pomodoroSetting = UserSetting_PomodoroSetting.decode(reader, reader.uint32());
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1712,6 +1810,9 @@ export const UserSetting: MessageFns<UserSetting> = {
       : undefined;
     message.webhooksSetting = (object.webhooksSetting !== undefined && object.webhooksSetting !== null)
       ? UserSetting_WebhooksSetting.fromPartial(object.webhooksSetting)
+      : undefined;
+    message.pomodoroSetting = (object.pomodoroSetting !== undefined && object.pomodoroSetting !== null)
+      ? UserSetting_PomodoroSetting.fromPartial(object.pomodoroSetting)
       : undefined;
     return message;
   },
@@ -1921,6 +2022,522 @@ export const UserSetting_WebhooksSetting: MessageFns<UserSetting_WebhooksSetting
   fromPartial(object: DeepPartial<UserSetting_WebhooksSetting>): UserSetting_WebhooksSetting {
     const message = createBaseUserSetting_WebhooksSetting();
     message.webhooks = object.webhooks?.map((e) => UserWebhook.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseUserSetting_PomodoroSetting(): UserSetting_PomodoroSetting {
+  return { selectedPreset: "", presets: [], appearanceSettings: undefined };
+}
+
+export const UserSetting_PomodoroSetting: MessageFns<UserSetting_PomodoroSetting> = {
+  encode(message: UserSetting_PomodoroSetting, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.selectedPreset !== "") {
+      writer.uint32(10).string(message.selectedPreset);
+    }
+    for (const v of message.presets) {
+      UserSetting_TimerPreset.encode(v!, writer.uint32(18).fork()).join();
+    }
+    if (message.appearanceSettings !== undefined) {
+      UserSetting_AppearanceSettings.encode(message.appearanceSettings, writer.uint32(26).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): UserSetting_PomodoroSetting {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseUserSetting_PomodoroSetting();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.selectedPreset = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.presets.push(UserSetting_TimerPreset.decode(reader, reader.uint32()));
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.appearanceSettings = UserSetting_AppearanceSettings.decode(reader, reader.uint32());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  create(base?: DeepPartial<UserSetting_PomodoroSetting>): UserSetting_PomodoroSetting {
+    return UserSetting_PomodoroSetting.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<UserSetting_PomodoroSetting>): UserSetting_PomodoroSetting {
+    const message = createBaseUserSetting_PomodoroSetting();
+    message.selectedPreset = object.selectedPreset ?? "";
+    message.presets = object.presets?.map((e) => UserSetting_TimerPreset.fromPartial(e)) || [];
+    message.appearanceSettings = (object.appearanceSettings !== undefined && object.appearanceSettings !== null)
+      ? UserSetting_AppearanceSettings.fromPartial(object.appearanceSettings)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseUserSetting_AppearanceSettings(): UserSetting_AppearanceSettings {
+  return { home: undefined, focus: undefined, ambient: undefined };
+}
+
+export const UserSetting_AppearanceSettings: MessageFns<UserSetting_AppearanceSettings> = {
+  encode(message: UserSetting_AppearanceSettings, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.home !== undefined) {
+      UserSetting_ModeAppearance.encode(message.home, writer.uint32(10).fork()).join();
+    }
+    if (message.focus !== undefined) {
+      UserSetting_ModeAppearance.encode(message.focus, writer.uint32(18).fork()).join();
+    }
+    if (message.ambient !== undefined) {
+      UserSetting_ModeAppearance.encode(message.ambient, writer.uint32(26).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): UserSetting_AppearanceSettings {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseUserSetting_AppearanceSettings();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.home = UserSetting_ModeAppearance.decode(reader, reader.uint32());
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.focus = UserSetting_ModeAppearance.decode(reader, reader.uint32());
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.ambient = UserSetting_ModeAppearance.decode(reader, reader.uint32());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  create(base?: DeepPartial<UserSetting_AppearanceSettings>): UserSetting_AppearanceSettings {
+    return UserSetting_AppearanceSettings.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<UserSetting_AppearanceSettings>): UserSetting_AppearanceSettings {
+    const message = createBaseUserSetting_AppearanceSettings();
+    message.home = (object.home !== undefined && object.home !== null)
+      ? UserSetting_ModeAppearance.fromPartial(object.home)
+      : undefined;
+    message.focus = (object.focus !== undefined && object.focus !== null)
+      ? UserSetting_ModeAppearance.fromPartial(object.focus)
+      : undefined;
+    message.ambient = (object.ambient !== undefined && object.ambient !== null)
+      ? UserSetting_ModeAppearance.fromPartial(object.ambient)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseUserSetting_ModeAppearance(): UserSetting_ModeAppearance {
+  return { wallpaper: undefined, font: undefined };
+}
+
+export const UserSetting_ModeAppearance: MessageFns<UserSetting_ModeAppearance> = {
+  encode(message: UserSetting_ModeAppearance, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.wallpaper !== undefined) {
+      UserSetting_WallpaperSetting.encode(message.wallpaper, writer.uint32(10).fork()).join();
+    }
+    if (message.font !== undefined) {
+      UserSetting_FontSetting.encode(message.font, writer.uint32(18).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): UserSetting_ModeAppearance {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseUserSetting_ModeAppearance();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.wallpaper = UserSetting_WallpaperSetting.decode(reader, reader.uint32());
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.font = UserSetting_FontSetting.decode(reader, reader.uint32());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  create(base?: DeepPartial<UserSetting_ModeAppearance>): UserSetting_ModeAppearance {
+    return UserSetting_ModeAppearance.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<UserSetting_ModeAppearance>): UserSetting_ModeAppearance {
+    const message = createBaseUserSetting_ModeAppearance();
+    message.wallpaper = (object.wallpaper !== undefined && object.wallpaper !== null)
+      ? UserSetting_WallpaperSetting.fromPartial(object.wallpaper)
+      : undefined;
+    message.font = (object.font !== undefined && object.font !== null)
+      ? UserSetting_FontSetting.fromPartial(object.font)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseUserSetting_WallpaperSetting(): UserSetting_WallpaperSetting {
+  return { selectedWallpaper: "", wallpaperStyle: "" };
+}
+
+export const UserSetting_WallpaperSetting: MessageFns<UserSetting_WallpaperSetting> = {
+  encode(message: UserSetting_WallpaperSetting, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.selectedWallpaper !== "") {
+      writer.uint32(10).string(message.selectedWallpaper);
+    }
+    if (message.wallpaperStyle !== "") {
+      writer.uint32(18).string(message.wallpaperStyle);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): UserSetting_WallpaperSetting {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseUserSetting_WallpaperSetting();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.selectedWallpaper = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.wallpaperStyle = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  create(base?: DeepPartial<UserSetting_WallpaperSetting>): UserSetting_WallpaperSetting {
+    return UserSetting_WallpaperSetting.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<UserSetting_WallpaperSetting>): UserSetting_WallpaperSetting {
+    const message = createBaseUserSetting_WallpaperSetting();
+    message.selectedWallpaper = object.selectedWallpaper ?? "";
+    message.wallpaperStyle = object.wallpaperStyle ?? "";
+    return message;
+  },
+};
+
+function createBaseUserSetting_FontSetting(): UserSetting_FontSetting {
+  return { selectedFont: "", fontSize: 0, fontColor: "" };
+}
+
+export const UserSetting_FontSetting: MessageFns<UserSetting_FontSetting> = {
+  encode(message: UserSetting_FontSetting, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.selectedFont !== "") {
+      writer.uint32(10).string(message.selectedFont);
+    }
+    if (message.fontSize !== 0) {
+      writer.uint32(16).int32(message.fontSize);
+    }
+    if (message.fontColor !== "") {
+      writer.uint32(26).string(message.fontColor);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): UserSetting_FontSetting {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseUserSetting_FontSetting();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.selectedFont = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.fontSize = reader.int32();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.fontColor = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  create(base?: DeepPartial<UserSetting_FontSetting>): UserSetting_FontSetting {
+    return UserSetting_FontSetting.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<UserSetting_FontSetting>): UserSetting_FontSetting {
+    const message = createBaseUserSetting_FontSetting();
+    message.selectedFont = object.selectedFont ?? "";
+    message.fontSize = object.fontSize ?? 0;
+    message.fontColor = object.fontColor ?? "";
+    return message;
+  },
+};
+
+function createBaseUserSetting_TimerPreset(): UserSetting_TimerPreset {
+  return {
+    id: "",
+    name: "",
+    description: "",
+    type: "",
+    focusDuration: 0,
+    shortBreakDuration: 0,
+    longBreakDuration: 0,
+    longBreakInterval: 0,
+    autoStartBreaks: false,
+    autoStartFocus: false,
+    isDefault: false,
+  };
+}
+
+export const UserSetting_TimerPreset: MessageFns<UserSetting_TimerPreset> = {
+  encode(message: UserSetting_TimerPreset, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
+    }
+    if (message.name !== "") {
+      writer.uint32(18).string(message.name);
+    }
+    if (message.description !== "") {
+      writer.uint32(26).string(message.description);
+    }
+    if (message.type !== "") {
+      writer.uint32(34).string(message.type);
+    }
+    if (message.focusDuration !== 0) {
+      writer.uint32(40).int32(message.focusDuration);
+    }
+    if (message.shortBreakDuration !== 0) {
+      writer.uint32(48).int32(message.shortBreakDuration);
+    }
+    if (message.longBreakDuration !== 0) {
+      writer.uint32(56).int32(message.longBreakDuration);
+    }
+    if (message.longBreakInterval !== 0) {
+      writer.uint32(64).int32(message.longBreakInterval);
+    }
+    if (message.autoStartBreaks !== false) {
+      writer.uint32(72).bool(message.autoStartBreaks);
+    }
+    if (message.autoStartFocus !== false) {
+      writer.uint32(80).bool(message.autoStartFocus);
+    }
+    if (message.isDefault !== false) {
+      writer.uint32(88).bool(message.isDefault);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): UserSetting_TimerPreset {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseUserSetting_TimerPreset();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.id = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.name = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.description = reader.string();
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.type = reader.string();
+          continue;
+        }
+        case 5: {
+          if (tag !== 40) {
+            break;
+          }
+
+          message.focusDuration = reader.int32();
+          continue;
+        }
+        case 6: {
+          if (tag !== 48) {
+            break;
+          }
+
+          message.shortBreakDuration = reader.int32();
+          continue;
+        }
+        case 7: {
+          if (tag !== 56) {
+            break;
+          }
+
+          message.longBreakDuration = reader.int32();
+          continue;
+        }
+        case 8: {
+          if (tag !== 64) {
+            break;
+          }
+
+          message.longBreakInterval = reader.int32();
+          continue;
+        }
+        case 9: {
+          if (tag !== 72) {
+            break;
+          }
+
+          message.autoStartBreaks = reader.bool();
+          continue;
+        }
+        case 10: {
+          if (tag !== 80) {
+            break;
+          }
+
+          message.autoStartFocus = reader.bool();
+          continue;
+        }
+        case 11: {
+          if (tag !== 88) {
+            break;
+          }
+
+          message.isDefault = reader.bool();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  create(base?: DeepPartial<UserSetting_TimerPreset>): UserSetting_TimerPreset {
+    return UserSetting_TimerPreset.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<UserSetting_TimerPreset>): UserSetting_TimerPreset {
+    const message = createBaseUserSetting_TimerPreset();
+    message.id = object.id ?? "";
+    message.name = object.name ?? "";
+    message.description = object.description ?? "";
+    message.type = object.type ?? "";
+    message.focusDuration = object.focusDuration ?? 0;
+    message.shortBreakDuration = object.shortBreakDuration ?? 0;
+    message.longBreakDuration = object.longBreakDuration ?? 0;
+    message.longBreakInterval = object.longBreakInterval ?? 0;
+    message.autoStartBreaks = object.autoStartBreaks ?? false;
+    message.autoStartFocus = object.autoStartFocus ?? false;
+    message.isDefault = object.isDefault ?? false;
     return message;
   },
 };

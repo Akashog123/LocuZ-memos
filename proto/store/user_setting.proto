@@ -19,6 +19,8 @@ message UserSetting {
     SHORTCUTS = 4;
     // The webhooks of the user.
     WEBHOOKS = 5;
+    // Pomodoro timer settings.
+    POMODORO = 6;
   }
 
   int32 user_id = 1;
@@ -30,6 +32,7 @@ message UserSetting {
     AccessTokensUserSetting access_tokens = 5;
     ShortcutsUserSetting shortcuts = 6;
     WebhooksUserSetting webhooks = 7;
+    PomodoroUserSetting pomodoro = 8;
   }
 }
 
@@ -102,4 +105,60 @@ message WebhooksUserSetting {
     string url = 3;
   }
   repeated Webhook webhooks = 1;
+}
+
+message PomodoroUserSetting {
+  // Selected preset ID
+  string selected_preset = 1;
+  // Array of timer presets
+  repeated TimerPreset presets = 2;
+  // Appearance settings for different modes
+  AppearanceSettings appearance_settings = 3;
+}
+
+message AppearanceSettings {
+  ModeAppearance home = 1;
+  ModeAppearance focus = 2;
+  ModeAppearance ambient = 3;
+}
+
+message ModeAppearance {
+  WallpaperSetting wallpaper = 1;
+  FontSetting font = 2;
+}
+
+message WallpaperSetting {
+  string selected_wallpaper = 1;
+  string wallpaper_style = 2;
+}
+
+message FontSetting {
+  string selected_font = 1;
+  int32 font_size = 2;
+  string font_color = 3;
+}
+
+message TimerPreset {
+  // Unique identifier for the preset
+  string id = 1;
+  // Display name
+  string name = 2;
+  // Description of the preset
+  string description = 3;
+  // Preset type
+  string type = 4;
+  // Focus duration in minutes (0 for stopwatch)
+  int32 focus_duration = 5;
+  // Short break duration in minutes
+  int32 short_break_duration = 6;
+  // Long break duration in minutes
+  int32 long_break_duration = 7;
+  // After how many focus sessions to take a long break
+  int32 long_break_interval = 8;
+  // Whether to auto-start breaks
+  bool auto_start_breaks = 9;
+  // Whether to auto-start focus sessions
+  bool auto_start_focus = 10;
+  // Whether this is a default preset (cannot be deleted)
+  bool is_default = 11;
 }

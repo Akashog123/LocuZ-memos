@@ -19,6 +19,7 @@ const Setting = lazy(() => import("@/pages/Setting"));
 const SignIn = lazy(() => import("@/pages/SignIn"));
 const SignUp = lazy(() => import("@/pages/SignUp"));
 const UserProfile = lazy(() => import("@/pages/UserProfile"));
+const Pomodoro = lazy(() => import("@/pages/Pomodoro"));
 const MemoDetailRedirect = lazy(() => import("./MemoDetailRedirect"));
 
 export enum Routes {
@@ -29,6 +30,7 @@ export enum Routes {
   SETTING = "/setting",
   EXPLORE = "/explore",
   AUTH = "/auth",
+  POMODORO = "/pomodoro",
 }
 
 const router = createBrowserRouter([
@@ -131,6 +133,14 @@ const router = createBrowserRouter([
             element: (
               <Suspense fallback={<Loading />}>
                 <Setting />
+              </Suspense>
+            ),
+          },
+          {
+            path: Routes.POMODORO,
+            element: (
+              <Suspense fallback={<Loading />}>
+                <Pomodoro />
               </Suspense>
             ),
           },

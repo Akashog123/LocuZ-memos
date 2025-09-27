@@ -3437,6 +3437,8 @@ components:
                     $ref: '#/components/schemas/UserSetting_AccessTokensSetting'
                 webhooksSetting:
                     $ref: '#/components/schemas/UserSetting_WebhooksSetting'
+                pomodoroSetting:
+                    $ref: '#/components/schemas/UserSetting_PomodoroSetting'
             description: User settings message
         UserSetting_AccessTokensSetting:
             type: object
@@ -3447,6 +3449,36 @@ components:
                         $ref: '#/components/schemas/UserAccessToken'
                     description: List of user access tokens.
             description: User access tokens configuration.
+        UserSetting_AppearanceSettings:
+            type: object
+            properties:
+                home:
+                    allOf:
+                        - $ref: '#/components/schemas/UserSetting_ModeAppearance'
+                    description: Home mode appearance settings
+                focus:
+                    allOf:
+                        - $ref: '#/components/schemas/UserSetting_ModeAppearance'
+                    description: Focus mode appearance settings
+                ambient:
+                    allOf:
+                        - $ref: '#/components/schemas/UserSetting_ModeAppearance'
+                    description: Ambient mode appearance settings
+            description: Appearance settings for different timer modes
+        UserSetting_FontSetting:
+            type: object
+            properties:
+                selectedFont:
+                    type: string
+                    description: Selected font family
+                fontSize:
+                    type: integer
+                    description: Font size in pixels
+                    format: int32
+                fontColor:
+                    type: string
+                    description: Font color (hex code)
+            description: Font configuration
         UserSetting_GeneralSetting:
             type: object
             properties:
@@ -3460,6 +3492,34 @@ components:
                     type: string
                     description: "The preferred theme of the user.\r\n This references a CSS file in the web/public/themes/ directory.\r\n If not set, the default theme will be used."
             description: General user settings configuration.
+        UserSetting_ModeAppearance:
+            type: object
+            properties:
+                wallpaper:
+                    allOf:
+                        - $ref: '#/components/schemas/UserSetting_WallpaperSetting'
+                    description: Wallpaper settings
+                font:
+                    allOf:
+                        - $ref: '#/components/schemas/UserSetting_FontSetting'
+                    description: Font settings
+            description: Appearance settings for a specific mode
+        UserSetting_PomodoroSetting:
+            type: object
+            properties:
+                selectedPreset:
+                    type: string
+                    description: Selected preset ID
+                presets:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/UserSetting_TimerPreset'
+                    description: Array of timer presets
+                appearanceSettings:
+                    allOf:
+                        - $ref: '#/components/schemas/UserSetting_AppearanceSettings'
+                    description: Appearance settings for each mode
+            description: User pomodoro timer configuration.
         UserSetting_SessionsSetting:
             type: object
             properties:
@@ -3469,6 +3529,57 @@ components:
                         $ref: '#/components/schemas/UserSession'
                     description: List of active user sessions.
             description: User authentication sessions configuration.
+        UserSetting_TimerPreset:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: Unique identifier for the preset
+                name:
+                    type: string
+                    description: Display name
+                description:
+                    type: string
+                    description: Description of the preset
+                type:
+                    type: string
+                    description: Preset type
+                focusDuration:
+                    type: integer
+                    description: Focus duration in minutes (0 for stopwatch)
+                    format: int32
+                shortBreakDuration:
+                    type: integer
+                    description: Short break duration in minutes
+                    format: int32
+                longBreakDuration:
+                    type: integer
+                    description: Long break duration in minutes
+                    format: int32
+                longBreakInterval:
+                    type: integer
+                    description: After how many focus sessions to take a long break
+                    format: int32
+                autoStartBreaks:
+                    type: boolean
+                    description: Whether to auto-start breaks
+                autoStartFocus:
+                    type: boolean
+                    description: Whether to auto-start focus sessions
+                isDefault:
+                    type: boolean
+                    description: Whether this is a default preset (cannot be deleted)
+            description: Timer preset configuration.
+        UserSetting_WallpaperSetting:
+            type: object
+            properties:
+                selectedWallpaper:
+                    type: string
+                    description: Selected wallpaper ID
+                wallpaperStyle:
+                    type: string
+                    description: Wallpaper display style
+            description: Wallpaper configuration
         UserSetting_WebhooksSetting:
             type: object
             properties:

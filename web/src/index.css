@@ -13,4 +13,15 @@
   body {
     @apply bg-background text-foreground;
   }
+  /* Prevent scrollbar flickering when dropdowns open */
+  html {
+    overflow-x: hidden;
+  }
+  body {
+    overflow-x: hidden;
+  }
+  /* Ensure dropdowns don't cause layout shifts */
+  [data-radix-popper-content-wrapper] {
+    z-index: 9999 !important;
+  }
 }

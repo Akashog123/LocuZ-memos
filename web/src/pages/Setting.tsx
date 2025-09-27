@@ -1,4 +1,4 @@
-import { CogIcon, DatabaseIcon, KeyIcon, LibraryIcon, LucideIcon, Settings2Icon, UserIcon, UsersIcon } from "lucide-react";
+import { CogIcon, DatabaseIcon, KeyIcon, LibraryIcon, LucideIcon, Settings2Icon, TimerIcon, UserIcon, UsersIcon } from "lucide-react";
 import { observer } from "mobx-react-lite";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
@@ -6,6 +6,7 @@ import MobileHeader from "@/components/MobileHeader";
 import MemberSection from "@/components/Settings/MemberSection";
 import MemoRelatedSettings from "@/components/Settings/MemoRelatedSettings";
 import MyAccountSection from "@/components/Settings/MyAccountSection";
+import PomodoroSection from "@/components/Settings/PomodoroSection";
 import PreferencesSection from "@/components/Settings/PreferencesSection";
 import SSOSection from "@/components/Settings/SSOSection";
 import SectionMenuItem from "@/components/Settings/SectionMenuItem";
@@ -19,17 +20,18 @@ import { User_Role } from "@/types/proto/api/v1/user_service";
 import { WorkspaceSetting_Key } from "@/types/proto/api/v1/workspace_service";
 import { useTranslate } from "@/utils/i18n";
 
-type SettingSection = "my-account" | "preference" | "member" | "system" | "memo-related" | "storage" | "sso";
+type SettingSection = "my-account" | "preference" | "pomodoro" | "member" | "system" | "memo-related" | "storage" | "sso";
 
 interface State {
   selectedSection: SettingSection;
 }
 
-const BASIC_SECTIONS: SettingSection[] = ["my-account", "preference"];
+const BASIC_SECTIONS: SettingSection[] = ["my-account", "preference", "pomodoro"];
 const ADMIN_SECTIONS: SettingSection[] = ["member", "system", "memo-related", "storage", "sso"];
 const SECTION_ICON_MAP: Record<SettingSection, LucideIcon> = {
   "my-account": UserIcon,
   preference: CogIcon,
+  pomodoro: TimerIcon,
   member: UsersIcon,
   system: Settings2Icon,
   "memo-related": LibraryIcon,
@@ -140,6 +142,8 @@ const Setting = observer(() => {
               <MyAccountSection />
             ) : state.selectedSection === "preference" ? (
               <PreferencesSection />
+            ) : state.selectedSection === "pomodoro" ? (
+              <PomodoroSection />
             ) : state.selectedSection === "member" ? (
               <MemberSection />
             ) : state.selectedSection === "system" ? (

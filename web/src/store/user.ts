@@ -8,6 +8,8 @@ import {
   UserSetting,
   UserSetting_Key,
   UserSetting_GeneralSetting,
+  UserSetting_PomodoroSetting,
+  UserSetting_TimerPreset,
   UserSetting_SessionsSetting,
   UserSetting_AccessTokensSetting,
   UserSetting_WebhooksSetting,
@@ -22,6 +24,7 @@ class LocalState {
   userSessionsSetting?: UserSetting_SessionsSetting;
   userAccessTokensSetting?: UserSetting_AccessTokensSetting;
   userWebhooksSetting?: UserSetting_WebhooksSetting;
+  userPomodoroSetting?: UserSetting_PomodoroSetting;
   shortcuts: Shortcut[] = [];
   inboxes: Inbox[] = [];
   userMapByName: Record<string, User> = {};
@@ -160,6 +163,27 @@ const userStore = (() => {
     });
   };
 
+  const updateUserPomodoroSetting = async (pomodoroSetting: Partial<UserSetting_PomodoroSetting>, updateMask: string[]) => {
+    if (!state.currentUser) {
+      throw new Error("No current user");
+    }
+
+    const settingName = `${state.currentUser}/settings/${UserSetting_Key.POMODORO}`;
+    const userSetting: UserSetting = {
+      name: settingName,
+      pomodoroSetting: pomodoroSetting as UserSetting_PomodoroSetting,
+    };
+
+    const updatedUserSetting = await userServiceClient.updateUserSetting({
+      setting: userSetting,
+      updateMask: updateMask,
+    });
+
+    state.setPartial({
+      userPomodoroSetting: updatedUserSetting.pomodoroSetting,
+    });
+  };
+
   const getUserGeneralSetting = async () => {
     if (!state.currentUser) {
       throw new Error("No current user");
@@ -173,6 +197,21 @@ const userStore = (() => {
     });
 
     return userSetting.generalSetting;
+  };
+
+  const getUserPomodoroSetting = async () => {
+    if (!state.currentUser) {
+      throw new Error("No current user");
+    }
+
+    const settingName = `${state.currentUser}/settings/${UserSetting_Key.POMODORO}`;
+    const userSetting = await userServiceClient.getUserSetting({ name: settingName });
+
+    state.setPartial({
+      userPomodoroSetting: userSetting.pomodoroSetting,
+    });
+
+    return userSetting.pomodoroSetting;
   };
 
   const fetchUserSettings = async () => {
@@ -270,7 +309,9 @@ const userStore = (() => {
     updateUser,
     deleteUser,
     updateUserGeneralSetting,
+    updateUserPomodoroSetting,
     getUserGeneralSetting,
+    getUserPomodoroSetting,
     fetchUserSettings,
     fetchInboxes,
     updateInbox,

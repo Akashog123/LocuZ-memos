@@ -311,6 +311,302 @@ func getDefaultUserGeneralSetting() *v1pb.UserSetting_GeneralSetting {
 	}
 }
 
+func getDefaultUserPomodoroSetting() *v1pb.UserSetting_PomodoroSetting {
+	return &v1pb.UserSetting_PomodoroSetting{
+		SelectedPreset: "pomodoro-classic",
+		Presets: []*v1pb.UserSetting_TimerPreset{
+			{
+				Id:                   "pomodoro-classic",
+				Name:                 "Classic Pomodoro",
+				Description:          "25 minutes focus, 5 minutes break, 15 minutes long break",
+				Type:                 "pomodoro",
+				FocusDuration:        25,
+				ShortBreakDuration:   5,
+				LongBreakDuration:    15,
+				LongBreakInterval:    4,
+				AutoStartBreaks:      true,
+				AutoStartFocus:       true,
+				IsDefault:           true,
+			},
+			{
+				Id:                   "pomodoro-short",
+				Name:                 "Short Pomodoro",
+				Description:          "15 minutes focus, 3 minutes break, 10 minutes long break",
+				Type:                 "pomodoro",
+				FocusDuration:        15,
+				ShortBreakDuration:   3,
+				LongBreakDuration:    10,
+				LongBreakInterval:    4,
+				AutoStartBreaks:      true,
+				AutoStartFocus:       true,
+				IsDefault:           true,
+			},
+			{
+				Id:                   "52-17-rule",
+				Name:                 "52/17 Rule",
+				Description:          "52 minutes focus, 17 minutes break",
+				Type:                 "pomodoro",
+				FocusDuration:        52,
+				ShortBreakDuration:   17,
+				LongBreakDuration:    17,
+				LongBreakInterval:    1,
+				AutoStartBreaks:      true,
+				AutoStartFocus:       true,
+				IsDefault:           true,
+			},
+			{
+				Id:                   "animedoro",
+				Name:                 "Animedoro",
+				Description:          "Perfect for anime watching: 90 minutes focus, 15 minutes break",
+				Type:                 "pomodoro",
+				FocusDuration:        90,
+				ShortBreakDuration:   15,
+				LongBreakDuration:    30,
+				LongBreakInterval:    2,
+				AutoStartBreaks:      true,
+				AutoStartFocus:       true,
+				IsDefault:           true,
+			},
+			{
+				Id:                   "stopwatch",
+				Name:                 "Stopwatch",
+				Description:          "Count up timer for flexible timing",
+				Type:                 "stopwatch",
+				FocusDuration:        0,
+				ShortBreakDuration:   5,
+				LongBreakDuration:    15,
+				LongBreakInterval:    4,
+				AutoStartBreaks:      false,
+				AutoStartFocus:       false,
+				IsDefault:           true,
+			},
+			{
+				Id:                   "countdown-60",
+				Name:                 "Countdown 60",
+				Description:          "60 minutes countdown timer",
+				Type:                 "countdown",
+				FocusDuration:        60,
+				ShortBreakDuration:   5,
+				LongBreakDuration:    15,
+				LongBreakInterval:    1,
+				AutoStartBreaks:      false,
+				AutoStartFocus:       false,
+				IsDefault:           true,
+			},
+			{
+				Id:                   "countdown-30",
+				Name:                 "Countdown 30",
+				Description:          "30 minutes countdown timer",
+				Type:                 "countdown",
+				FocusDuration:        30,
+				ShortBreakDuration:   5,
+				LongBreakDuration:    10,
+				LongBreakInterval:    1,
+				AutoStartBreaks:      false,
+				AutoStartFocus:       false,
+				IsDefault:           true,
+			},
+		},
+		AppearanceSettings: &v1pb.UserSetting_AppearanceSettings{
+			Home: &v1pb.UserSetting_ModeAppearance{
+				Wallpaper: &v1pb.UserSetting_WallpaperSetting{
+					SelectedWallpaper: "default",
+					WallpaperStyle:    "fill",
+				},
+				Font: &v1pb.UserSetting_FontSetting{
+					SelectedFont: "system",
+					FontSize:     16,
+					FontColor:    "#ffffff",
+				},
+			},
+			Focus: &v1pb.UserSetting_ModeAppearance{
+				Wallpaper: &v1pb.UserSetting_WallpaperSetting{
+					SelectedWallpaper: "default",
+					WallpaperStyle:    "fill",
+				},
+				Font: &v1pb.UserSetting_FontSetting{
+					SelectedFont: "system",
+					FontSize:     16,
+					FontColor:    "#ffffff",
+				},
+			},
+			Ambient: &v1pb.UserSetting_ModeAppearance{
+				Wallpaper: &v1pb.UserSetting_WallpaperSetting{
+					SelectedWallpaper: "default",
+					WallpaperStyle:    "fill",
+				},
+				Font: &v1pb.UserSetting_FontSetting{
+					SelectedFont: "system",
+					FontSize:     16,
+					FontColor:    "#ffffff",
+				},
+			},
+		},
+	}
+}
+
+func convertTimerPresetsFromStore(storePresets []*storepb.TimerPreset) []*v1pb.UserSetting_TimerPreset {
+	apiPresets := make([]*v1pb.UserSetting_TimerPreset, 0, len(storePresets))
+	for _, preset := range storePresets {
+		apiPreset := &v1pb.UserSetting_TimerPreset{
+			Id:                   preset.Id,
+			Name:                 preset.Name,
+			Description:          preset.Description,
+			Type:                 preset.Type,
+			FocusDuration:        preset.FocusDuration,
+			ShortBreakDuration:   preset.ShortBreakDuration,
+			LongBreakDuration:    preset.LongBreakDuration,
+			LongBreakInterval:    preset.LongBreakInterval,
+			AutoStartBreaks:      preset.AutoStartBreaks,
+			AutoStartFocus:       preset.AutoStartFocus,
+			IsDefault:           preset.IsDefault,
+		}
+		apiPresets = append(apiPresets, apiPreset)
+	}
+	return apiPresets
+}
+
+func convertTimerPresetsToStore(apiPresets []*v1pb.UserSetting_TimerPreset) []*storepb.TimerPreset {
+	storePresets := make([]*storepb.TimerPreset, 0, len(apiPresets))
+	for _, preset := range apiPresets {
+		storePreset := &storepb.TimerPreset{
+			Id:                   preset.Id,
+			Name:                 preset.Name,
+			Description:          preset.Description,
+			Type:                 preset.Type,
+			FocusDuration:        preset.FocusDuration,
+			ShortBreakDuration:   preset.ShortBreakDuration,
+			LongBreakDuration:    preset.LongBreakDuration,
+			LongBreakInterval:    preset.LongBreakInterval,
+			AutoStartBreaks:      preset.AutoStartBreaks,
+			AutoStartFocus:       preset.AutoStartFocus,
+			IsDefault:           preset.IsDefault,
+		}
+		storePresets = append(storePresets, storePreset)
+	}
+	return storePresets
+}
+
+func convertAppearanceSettingsFromStore(storeAppearanceSettings *storepb.AppearanceSettings) *v1pb.UserSetting_AppearanceSettings {
+	if storeAppearanceSettings == nil {
+		return nil
+	}
+	result := &v1pb.UserSetting_AppearanceSettings{}
+
+	if storeAppearanceSettings.Home != nil {
+		result.Home = &v1pb.UserSetting_ModeAppearance{}
+		if storeAppearanceSettings.Home.Wallpaper != nil {
+			result.Home.Wallpaper = &v1pb.UserSetting_WallpaperSetting{
+				SelectedWallpaper: storeAppearanceSettings.Home.Wallpaper.SelectedWallpaper,
+				WallpaperStyle:    storeAppearanceSettings.Home.Wallpaper.WallpaperStyle,
+			}
+		}
+		if storeAppearanceSettings.Home.Font != nil {
+			result.Home.Font = &v1pb.UserSetting_FontSetting{
+				SelectedFont: storeAppearanceSettings.Home.Font.SelectedFont,
+				FontSize:     storeAppearanceSettings.Home.Font.FontSize,
+				FontColor:    storeAppearanceSettings.Home.Font.FontColor,
+			}
+		}
+	}
+
+	if storeAppearanceSettings.Focus != nil {
+		result.Focus = &v1pb.UserSetting_ModeAppearance{}
+		if storeAppearanceSettings.Focus.Wallpaper != nil {
+			result.Focus.Wallpaper = &v1pb.UserSetting_WallpaperSetting{
+				SelectedWallpaper: storeAppearanceSettings.Focus.Wallpaper.SelectedWallpaper,
+				WallpaperStyle:    storeAppearanceSettings.Focus.Wallpaper.WallpaperStyle,
+			}
+		}
+		if storeAppearanceSettings.Focus.Font != nil {
+			result.Focus.Font = &v1pb.UserSetting_FontSetting{
+				SelectedFont: storeAppearanceSettings.Focus.Font.SelectedFont,
+				FontSize:     storeAppearanceSettings.Focus.Font.FontSize,
+				FontColor:    storeAppearanceSettings.Focus.Font.FontColor,
+			}
+		}
+	}
+
+	if storeAppearanceSettings.Ambient != nil {
+		result.Ambient = &v1pb.UserSetting_ModeAppearance{}
+		if storeAppearanceSettings.Ambient.Wallpaper != nil {
+			result.Ambient.Wallpaper = &v1pb.UserSetting_WallpaperSetting{
+				SelectedWallpaper: storeAppearanceSettings.Ambient.Wallpaper.SelectedWallpaper,
+				WallpaperStyle:    storeAppearanceSettings.Ambient.Wallpaper.WallpaperStyle,
+			}
+		}
+		if storeAppearanceSettings.Ambient.Font != nil {
+			result.Ambient.Font = &v1pb.UserSetting_FontSetting{
+				SelectedFont: storeAppearanceSettings.Ambient.Font.SelectedFont,
+				FontSize:     storeAppearanceSettings.Ambient.Font.FontSize,
+				FontColor:    storeAppearanceSettings.Ambient.Font.FontColor,
+			}
+		}
+	}
+
+	return result
+}
+
+func convertAppearanceSettingsToStore(apiAppearanceSettings *v1pb.UserSetting_AppearanceSettings) *storepb.AppearanceSettings {
+	if apiAppearanceSettings == nil {
+		return nil
+	}
+	result := &storepb.AppearanceSettings{}
+
+	if apiAppearanceSettings.Home != nil {
+		result.Home = &storepb.ModeAppearance{}
+		if apiAppearanceSettings.Home.Wallpaper != nil {
+			result.Home.Wallpaper = &storepb.WallpaperSetting{
+				SelectedWallpaper: apiAppearanceSettings.Home.Wallpaper.SelectedWallpaper,
+				WallpaperStyle:    apiAppearanceSettings.Home.Wallpaper.WallpaperStyle,
+			}
+		}
+		if apiAppearanceSettings.Home.Font != nil {
+			result.Home.Font = &storepb.FontSetting{
+				SelectedFont: apiAppearanceSettings.Home.Font.SelectedFont,
+				FontSize:     apiAppearanceSettings.Home.Font.FontSize,
+				FontColor:    apiAppearanceSettings.Home.Font.FontColor,
+			}
+		}
+	}
+
+	if apiAppearanceSettings.Focus != nil {
+		result.Focus = &storepb.ModeAppearance{}
+		if apiAppearanceSettings.Focus.Wallpaper != nil {
+			result.Focus.Wallpaper = &storepb.WallpaperSetting{
+				SelectedWallpaper: apiAppearanceSettings.Focus.Wallpaper.SelectedWallpaper,
+				WallpaperStyle:    apiAppearanceSettings.Focus.Wallpaper.WallpaperStyle,
+			}
+		}
+		if apiAppearanceSettings.Focus.Font != nil {
+			result.Focus.Font = &storepb.FontSetting{
+				SelectedFont: apiAppearanceSettings.Focus.Font.SelectedFont,
+				FontSize:     apiAppearanceSettings.Focus.Font.FontSize,
+				FontColor:    apiAppearanceSettings.Focus.Font.FontColor,
+			}
+		}
+	}
+
+	if apiAppearanceSettings.Ambient != nil {
+		result.Ambient = &storepb.ModeAppearance{}
+		if apiAppearanceSettings.Ambient.Wallpaper != nil {
+			result.Ambient.Wallpaper = &storepb.WallpaperSetting{
+				SelectedWallpaper: apiAppearanceSettings.Ambient.Wallpaper.SelectedWallpaper,
+				WallpaperStyle:    apiAppearanceSettings.Ambient.Wallpaper.WallpaperStyle,
+			}
+		}
+		if apiAppearanceSettings.Ambient.Font != nil {
+			result.Ambient.Font = &storepb.FontSetting{
+				SelectedFont: apiAppearanceSettings.Ambient.Font.SelectedFont,
+				FontSize:     apiAppearanceSettings.Ambient.Font.FontSize,
+				FontColor:    apiAppearanceSettings.Ambient.Font.FontColor,
+			}
+		}
+	}
+
+	return result
+}
+
 func (s *APIV1Service) GetUserSetting(ctx context.Context, request *v1pb.GetUserSettingRequest) (*v1pb.UserSetting, error) {
 	// Parse resource name: users/{user}/settings/{setting}
 	userID, settingKey, err := ExtractUserIDAndSettingKeyFromName(request.Name)
@@ -372,9 +668,9 @@ func (s *APIV1Service) UpdateUserSetting(ctx context.Context, request *v1pb.Upda
 		return nil, status.Errorf(codes.InvalidArgument, "invalid setting key: %v", err)
 	}
 
-	// Only GENERAL settings are supported via UpdateUserSetting
+	// Only GENERAL and POMODORO settings are supported via UpdateUserSetting
 	// Other setting types have dedicated service methods
-	if storeKey != storepb.UserSetting_GENERAL {
+	if storeKey != storepb.UserSetting_GENERAL && storeKey != storepb.UserSetting_POMODORO {
 		return nil, status.Errorf(codes.InvalidArgument, "setting type %s should not be updated via UpdateUserSetting", storeKey.String())
 	}
 
@@ -383,39 +679,88 @@ func (s *APIV1Service) UpdateUserSetting(ctx context.Context, request *v1pb.Upda
 		Key:    storeKey,
 	})
 
-	generalSetting := &storepb.GeneralUserSetting{}
-	if existingUserSetting != nil {
-		// Start with existing general setting values
-		generalSetting = existingUserSetting.GetGeneral()
-	}
+	var updatedSetting *v1pb.UserSetting
 
-	updatedGeneral := &v1pb.UserSetting_GeneralSetting{
-		MemoVisibility: generalSetting.GetMemoVisibility(),
-		Locale:         generalSetting.GetLocale(),
-		Theme:          generalSetting.GetTheme(),
-	}
-
-	// Apply updates for fields specified in the update mask
-	incomingGeneral := request.Setting.GetGeneralSetting()
-	for _, field := range request.UpdateMask.Paths {
-		switch field {
-		case "memoVisibility":
-			updatedGeneral.MemoVisibility = incomingGeneral.MemoVisibility
-		case "theme":
-			updatedGeneral.Theme = incomingGeneral.Theme
-		case "locale":
-			updatedGeneral.Locale = incomingGeneral.Locale
-		default:
-			// Ignore unsupported fields
+	if storeKey == storepb.UserSetting_GENERAL {
+		generalSetting := &storepb.GeneralUserSetting{}
+		if existingUserSetting != nil {
+			// Start with existing general setting values
+			generalSetting = existingUserSetting.GetGeneral()
 		}
-	}
 
-	// Create the updated setting
-	updatedSetting := &v1pb.UserSetting{
-		Name: request.Setting.Name,
-		Value: &v1pb.UserSetting_GeneralSetting_{
-			GeneralSetting: updatedGeneral,
-		},
+		updatedGeneral := &v1pb.UserSetting_GeneralSetting{
+			MemoVisibility: generalSetting.GetMemoVisibility(),
+			Locale:         generalSetting.GetLocale(),
+			Theme:          generalSetting.GetTheme(),
+		}
+
+		// Apply updates for fields specified in the update mask
+		incomingGeneral := request.Setting.GetGeneralSetting()
+		for _, field := range request.UpdateMask.Paths {
+			switch field {
+			case "memoVisibility":
+				updatedGeneral.MemoVisibility = incomingGeneral.MemoVisibility
+			case "theme":
+				updatedGeneral.Theme = incomingGeneral.Theme
+			case "locale":
+				updatedGeneral.Locale = incomingGeneral.Locale
+			default:
+				// Ignore unsupported fields
+			}
+		}
+
+		// Create the updated setting
+		updatedSetting = &v1pb.UserSetting{
+			Name: request.Setting.Name,
+			Value: &v1pb.UserSetting_GeneralSetting_{
+				GeneralSetting: updatedGeneral,
+			},
+		}
+	} else if storeKey == storepb.UserSetting_POMODORO {
+		fmt.Printf("UpdateUserSetting: Updating pomodoro settings, updateMask: %v\n", request.UpdateMask.Paths)
+		fmt.Printf("UpdateUserSetting: Incoming pomodoro setting: %+v\n", request.Setting.GetPomodoroSetting())
+		var pomodoroSetting *storepb.PomodoroUserSetting
+		if existingUserSetting != nil {
+			// Start with existing pomodoro setting values
+			pomodoroSetting = existingUserSetting.GetPomodoro()
+		} else {
+			// Use defaults if no existing setting
+			defaultSetting := getDefaultUserPomodoroSetting()
+			pomodoroSetting = &storepb.PomodoroUserSetting{
+				SelectedPreset:     defaultSetting.SelectedPreset,
+				Presets:            convertTimerPresetsToStore(defaultSetting.Presets),
+				AppearanceSettings: convertAppearanceSettingsToStore(defaultSetting.AppearanceSettings),
+			}
+		}
+
+		updatedPomodoro := &v1pb.UserSetting_PomodoroSetting{
+			SelectedPreset:     pomodoroSetting.GetSelectedPreset(),
+			Presets:            convertTimerPresetsFromStore(pomodoroSetting.GetPresets()),
+			AppearanceSettings: convertAppearanceSettingsFromStore(pomodoroSetting.GetAppearanceSettings()),
+		}
+
+		// Apply updates for fields specified in the update mask
+		incomingPomodoro := request.Setting.GetPomodoroSetting()
+		for _, field := range request.UpdateMask.Paths {
+			switch field {
+			case "selectedPreset":
+				updatedPomodoro.SelectedPreset = incomingPomodoro.SelectedPreset
+			case "presets":
+				updatedPomodoro.Presets = incomingPomodoro.Presets
+			case "appearanceSettings":
+				updatedPomodoro.AppearanceSettings = incomingPomodoro.AppearanceSettings
+			default:
+				// Ignore unsupported fields
+			}
+		}
+
+		// Create the updated setting
+		updatedSetting = &v1pb.UserSetting{
+			Name: request.Setting.Name,
+			Value: &v1pb.UserSetting_PomodoroSetting_{
+				PomodoroSetting: updatedPomodoro,
+			},
+		}
 	}
 
 	// Convert API setting to store setting
@@ -1092,6 +1437,8 @@ func convertSettingKeyToStore(key string) (storepb.UserSetting_Key, error) {
 		return storepb.UserSetting_ACCESS_TOKENS, nil
 	case v1pb.UserSetting_Key_name[int32(v1pb.UserSetting_WEBHOOKS)]:
 		return storepb.UserSetting_WEBHOOKS, nil
+	case v1pb.UserSetting_Key_name[int32(v1pb.UserSetting_POMODORO)]:
+		return storepb.UserSetting_POMODORO, nil
 	default:
 		return storepb.UserSetting_KEY_UNSPECIFIED, errors.Errorf("unknown setting key: %s", key)
 	}
@@ -1110,6 +1457,8 @@ func convertSettingKeyFromStore(key storepb.UserSetting_Key) string {
 		return "SHORTCUTS" // Not defined in API proto
 	case storepb.UserSetting_WEBHOOKS:
 		return v1pb.UserSetting_Key_name[int32(v1pb.UserSetting_WEBHOOKS)]
+	case storepb.UserSetting_POMODORO:
+		return v1pb.UserSetting_Key_name[int32(v1pb.UserSetting_POMODORO)]
 	default:
 		return "unknown"
 	}
@@ -1146,6 +1495,10 @@ func convertUserSettingFromStore(storeSetting *storepb.UserSetting, userID int32
 				WebhooksSetting: &v1pb.UserSetting_WebhooksSetting{
 					Webhooks: []*v1pb.UserWebhook{},
 				},
+			}
+		case storepb.UserSetting_POMODORO:
+			setting.Value = &v1pb.UserSetting_PomodoroSetting_{
+				PomodoroSetting: getDefaultUserPomodoroSetting(),
 			}
 		default:
 			// Default to general setting
@@ -1231,6 +1584,37 @@ func convertUserSettingFromStore(storeSetting *storepb.UserSetting, userID int32
 			WebhooksSetting: &v1pb.UserSetting_WebhooksSetting{
 				Webhooks: apiWebhooks,
 			},
+		}
+	case storepb.UserSetting_POMODORO:
+		if pomodoro := storeSetting.GetPomodoro(); pomodoro != nil {
+			apiPresets := make([]*v1pb.UserSetting_TimerPreset, 0, len(pomodoro.Presets))
+			for _, preset := range pomodoro.Presets {
+				apiPreset := &v1pb.UserSetting_TimerPreset{
+					Id:                   preset.Id,
+					Name:                 preset.Name,
+					Description:          preset.Description,
+					Type:                 preset.Type,
+					FocusDuration:        preset.FocusDuration,
+					ShortBreakDuration:   preset.ShortBreakDuration,
+					LongBreakDuration:    preset.LongBreakDuration,
+					LongBreakInterval:    preset.LongBreakInterval,
+					AutoStartBreaks:      preset.AutoStartBreaks,
+					AutoStartFocus:       preset.AutoStartFocus,
+					IsDefault:           preset.IsDefault,
+				}
+				apiPresets = append(apiPresets, apiPreset)
+			}
+			setting.Value = &v1pb.UserSetting_PomodoroSetting_{
+				PomodoroSetting: &v1pb.UserSetting_PomodoroSetting{
+					SelectedPreset:     pomodoro.SelectedPreset,
+					Presets:            apiPresets,
+					AppearanceSettings: convertAppearanceSettingsFromStore(pomodoro.AppearanceSettings),
+				},
+			}
+		} else {
+			setting.Value = &v1pb.UserSetting_PomodoroSetting_{
+				PomodoroSetting: getDefaultUserPomodoroSetting(),
+			}
 		}
 	default:
 		// Default to general setting if unknown key
@@ -1324,6 +1708,35 @@ func convertUserSettingToStore(apiSetting *v1pb.UserSetting, userID int32, key s
 			}
 		} else {
 			return nil, errors.Errorf("webhooks setting is required")
+		}
+	case storepb.UserSetting_POMODORO:
+		if pomodoro := apiSetting.GetPomodoroSetting(); pomodoro != nil {
+			storePresets := make([]*storepb.TimerPreset, 0, len(pomodoro.Presets))
+			for _, preset := range pomodoro.Presets {
+				storePreset := &storepb.TimerPreset{
+					Id:                   preset.Id,
+					Name:                 preset.Name,
+					Description:          preset.Description,
+					Type:                 preset.Type,
+					FocusDuration:        preset.FocusDuration,
+					ShortBreakDuration:   preset.ShortBreakDuration,
+					LongBreakDuration:    preset.LongBreakDuration,
+					LongBreakInterval:    preset.LongBreakInterval,
+					AutoStartBreaks:      preset.AutoStartBreaks,
+					AutoStartFocus:       preset.AutoStartFocus,
+					IsDefault:           preset.IsDefault,
+				}
+				storePresets = append(storePresets, storePreset)
+			}
+			storeSetting.Value = &storepb.UserSetting_Pomodoro{
+				Pomodoro: &storepb.PomodoroUserSetting{
+					SelectedPreset:     pomodoro.SelectedPreset,
+					Presets:            storePresets,
+					AppearanceSettings: convertAppearanceSettingsToStore(pomodoro.AppearanceSettings),
+				},
+			}
+		} else {
+			return nil, errors.Errorf("pomodoro setting is required")
 		}
 	default:
 		return nil, errors.Errorf("unsupported setting key: %v", key)
